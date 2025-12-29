@@ -7,6 +7,7 @@ const client = generateClient<Schema>();
 function App() {
   const [inventoryItems, setInventoryItems] = useState<Array<Schema["InventoryItem"]["type"]>>([]);
   const [showForm, setShowForm] = useState(false);
+  const [idCounter, setIdCounter] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -29,6 +30,22 @@ function App() {
     }
   }, []);
 
+  function createDemoItem(): Schema["InventoryItem"]["type"] {
+    const id = `demo-${Date.now()}-${idCounter}`;
+    setIdCounter(idCounter + 1);
+    return {
+      id,
+      name: formData.name,
+      description: formData.description || null,
+      quantity: formData.quantity,
+      price: formData.price,
+      category: formData.category || null,
+      sku: formData.sku,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
@@ -45,32 +62,12 @@ function App() {
         });
       } else {
         // Demo mode: add to local state
-        const newItem: Schema["InventoryItem"]["type"] = {
-          id: Date.now().toString(),
-          name: formData.name,
-          description: formData.description || null,
-          quantity: formData.quantity,
-          price: formData.price,
-          category: formData.category || null,
-          sku: formData.sku,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+        const newItem = createDemoItem();
         setInventoryItems([...inventoryItems, newItem]);
       }
     } catch (error) {
       // Demo mode fallback
-      const newItem: Schema["InventoryItem"]["type"] = {
-        id: Date.now().toString(),
-        name: formData.name,
-        description: formData.description || null,
-        quantity: formData.quantity,
-        price: formData.price,
-        category: formData.category || null,
-        sku: formData.sku,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      const newItem = createDemoItem();
       setInventoryItems([...inventoryItems, newItem]);
     }
     
