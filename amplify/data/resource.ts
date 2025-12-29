@@ -12,6 +12,16 @@ const schema = a.schema({
       content: a.string(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
+  InventoryItem: a
+    .model({
+      name: a.string().required(),
+      description: a.string(),
+      quantity: a.integer().required(),
+      price: a.float().required(),
+      sku: a.string().required(),
+      category: a.string(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
