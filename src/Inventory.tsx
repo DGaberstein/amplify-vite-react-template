@@ -63,6 +63,10 @@ function Inventory() {
   }
 
   function saveQuantity(id: string) {
+    if (editQuantity < 0 || isNaN(editQuantity)) {
+      alert("Please enter a valid quantity (0 or greater)");
+      return;
+    }
     client.models.InventoryItem.update({
       id,
       quantity: editQuantity,
@@ -111,9 +115,14 @@ function Inventory() {
                         min="0"
                         value={editQuantity}
                         onChange={(e) => {
-                          const value = parseInt(e.target.value, 10);
-                          if (!isNaN(value) && value >= 0) {
-                            setEditQuantity(value);
+                          const inputValue = e.target.value;
+                          if (inputValue === "") {
+                            setEditQuantity(0);
+                          } else {
+                            const value = parseInt(inputValue, 10);
+                            if (!isNaN(value) && value >= 0) {
+                              setEditQuantity(value);
+                            }
                           }
                         }}
                         style={{ width: "60px", padding: "4px" }}
