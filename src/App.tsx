@@ -17,21 +17,63 @@ function App() {
   });
 
   useEffect(() => {
-    client.models.InventoryItem.observeQuery().subscribe({
-      next: (data) => setInventoryItems([...data.items]),
-    });
+    // Try to connect to Amplify backend if available
+    try {
+      if (client?.models?.InventoryItem) {
+        client.models.InventoryItem.observeQuery().subscribe({
+          next: (data) => setInventoryItems([...data.items]),
+        });
+      }
+    } catch (error) {
+      console.log("Running in demo mode without backend connection");
+    }
   }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    client.models.InventoryItem.create({
-      name: formData.name,
-      description: formData.description,
-      quantity: formData.quantity,
-      price: formData.price,
-      category: formData.category,
-      sku: formData.sku,
-    });
+    
+    // Try to use Amplify backend if available, otherwise use local state for demo
+    try {
+      if (client?.models?.InventoryItem?.create) {
+        client.models.InventoryItem.create({
+          name: formData.name,
+          description: formData.description,
+          quantity: formData.quantity,
+          price: formData.price,
+          category: formData.category,
+          sku: formData.sku,
+        });
+      } else {
+        // Demo mode: add to local state
+        const newItem: Schema["InventoryItem"]["type"] = {
+          id: Date.now().toString(),
+          name: formData.name,
+          description: formData.description || null,
+          quantity: formData.quantity,
+          price: formData.price,
+          category: formData.category || null,
+          sku: formData.sku,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        setInventoryItems([...inventoryItems, newItem]);
+      }
+    } catch (error) {
+      // Demo mode fallback
+      const newItem: Schema["InventoryItem"]["type"] = {
+        id: Date.now().toString(),
+        name: formData.name,
+        description: formData.description || null,
+        quantity: formData.quantity,
+        price: formData.price,
+        category: formData.category || null,
+        sku: formData.sku,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setInventoryItems([...inventoryItems, newItem]);
+    }
+    
     setFormData({
       name: "",
       description: "",
@@ -44,13 +86,37 @@ function App() {
   }
 
   function deleteItem(id: string) {
-    client.models.InventoryItem.delete({ id });
+    try {
+      if (client?.models?.InventoryItem?.delete) {
+        client.models.InventoryItem.delete({ id });
+      } else {
+        // Demo mode: remove from local state
+        setInventoryItems(inventoryItems.filter(item => item.id !== id));
+      }
+    } catch (error) {
+      // Demo mode fallback
+      setInventoryItems(inventoryItems.filter(item => item.id !== id));
+    }
   }
 
   function updateQuantity(id: string, currentQuantity: number, change: number) {
     const newQuantity = currentQuantity + change;
     if (newQuantity >= 0) {
-      client.models.InventoryItem.update({ id, quantity: newQuantity });
+      try {
+        if (client?.models?.InventoryItem?.update) {
+          client.models.InventoryItem.update({ id, quantity: newQuantity });
+        } else {
+          // Demo mode: update local state
+          setInventoryItems(inventoryItems.map(item => 
+            item.id === id ? { ...item, quantity: newQuantity } : item
+          ));
+        }
+      } catch (error) {
+        // Demo mode fallback
+        setInventoryItems(inventoryItems.map(item => 
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        ));
+      }
     }
   }
 
