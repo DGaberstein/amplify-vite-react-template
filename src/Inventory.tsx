@@ -17,27 +17,37 @@ function Inventory() {
 
   function createItem() {
     const name = window.prompt("Item name:");
-    if (!name) return;
+    if (!name || name.trim() === "") return;
 
     const sku = window.prompt("SKU:");
-    if (!sku) return;
+    if (!sku || sku.trim() === "") return;
 
     const quantityStr = window.prompt("Quantity:");
-    const quantity = quantityStr ? parseInt(quantityStr, 10) : 0;
+    if (!quantityStr || quantityStr.trim() === "") return;
+    const quantity = parseInt(quantityStr, 10);
+    if (isNaN(quantity) || quantity < 0) {
+      alert("Please enter a valid quantity (0 or greater)");
+      return;
+    }
 
     const priceStr = window.prompt("Price:");
-    const price = priceStr ? parseFloat(priceStr) : 0;
+    if (!priceStr || priceStr.trim() === "") return;
+    const price = parseFloat(priceStr);
+    if (isNaN(price) || price < 0) {
+      alert("Please enter a valid price (0 or greater)");
+      return;
+    }
 
     const description = window.prompt("Description (optional):");
     const category = window.prompt("Category (optional):");
 
     client.models.InventoryItem.create({
-      name,
-      sku,
+      name: name.trim(),
+      sku: sku.trim(),
       quantity,
       price,
-      description: description || undefined,
-      category: category || undefined,
+      description: description && description.trim() ? description.trim() : undefined,
+      category: category && category.trim() ? category.trim() : undefined,
     });
   }
 
@@ -98,8 +108,14 @@ function Inventory() {
                     <div>
                       <input
                         type="number"
+                        min="0"
                         value={editQuantity}
-                        onChange={(e) => setEditQuantity(parseInt(e.target.value, 10) || 0)}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10);
+                          if (!isNaN(value) && value >= 0) {
+                            setEditQuantity(value);
+                          }
+                        }}
                         style={{ width: "60px", padding: "4px" }}
                       />
                       <button onClick={() => saveQuantity(item.id)} style={{ marginLeft: "5px", padding: "4px 8px" }}>
@@ -118,7 +134,7 @@ function Inventory() {
                     </span>
                   )}
                 </td>
-                <td style={{ padding: "12px" }}>${item.price.toFixed(2)}</td>
+                <td style={{ padding: "12px" }}>${(item.price ?? 0).toFixed(2)}</td>
                 <td style={{ padding: "12px" }}>
                   <button
                     onClick={() => deleteItem(item.id)}
@@ -136,8 +152,8 @@ function Inventory() {
       <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f8f9fa", borderRadius: "5px" }}>
         <h3>Inventory Summary</h3>
         <p>Total Items: {items.length}</p>
-        <p>Total Quantity: {items.reduce((sum, item) => sum + item.quantity, 0)}</p>
-        <p>Total Value: ${items.reduce((sum, item) => sum + (item.quantity * item.price), 0).toFixed(2)}</p>
+        <p>Total Quantity: {items.reduce((sum, item) => sum + (item.quantity ?? 0), 0)}</p>
+        <p>Total Value: ${items.reduce((sum, item) => sum + ((item.quantity ?? 0) * (item.price ?? 0)), 0).toFixed(2)}</p>
       </div>
     </div>
   );
